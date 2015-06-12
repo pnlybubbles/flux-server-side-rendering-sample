@@ -11,8 +11,9 @@ class RouteStore extends Flux.Store
     @routerUtil = new RouterUtil routes.root, routes.routes
 
   route: (fragment) ->
+    console.log "route:", fragment
     [route, argu] = @routerUtil.route fragment
-    if route
+    if route?
       @setState
         route: route
         argu: argu

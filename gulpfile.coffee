@@ -51,7 +51,7 @@ target.forEach (it) ->
         .pipe buffer()
         .pipe sourcemaps.init
           loadMaps: true
-        .pipe uglify()
+        # .pipe uglify()
         .pipe rename(it.name)
         .pipe sourcemaps.write('./')
         .pipe gulp.dest(it.dest)

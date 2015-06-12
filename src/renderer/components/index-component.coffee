@@ -1,4 +1,5 @@
 React = require 'react'
+Link = require './link-component'
 
 class IndexComponent extends React.Component
   constructor: (props) ->
@@ -6,7 +7,10 @@ class IndexComponent extends React.Component
 
   render: ->
     <div>
-      Hello Index
+      <p>
+        Hello Index
+      </p>
+      <Link href='/about' context={@props.context}>About</Link>
     </div>
 
 module.exports = IndexComponent

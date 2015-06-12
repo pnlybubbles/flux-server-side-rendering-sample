@@ -1,5 +1,6 @@
 React = require 'react'
 IndexComponent = require './index-component'
+AboutComponent = require './about-component'
 ErrorComponent = require './error-component'
 
 class RouteComponent extends React.Component
@@ -9,6 +10,7 @@ class RouteComponent extends React.Component
     @state = @store.get()
     @components =
       Index: IndexComponent
+      About: AboutComponent
       Error: ErrorComponent
 
   _onChange: ->
