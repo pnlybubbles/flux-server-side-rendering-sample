@@ -7,13 +7,22 @@ class AboutComponent extends React.Component
 
   render: ->
     <div>
+      <h1>About</h1>
       <p>
-        Hello About
+        Counter with Flux
       </p>
+      <h3>Feature</h3>
       <p>
-        I am pnlybubbles
+        <ul>
+          <li>Flux</li>
+          <li>React.js</li>
+          <li>ServerSide Rendering</li>
+        </ul>
       </p>
-      <Link href='/' context={@props.context}>Index</Link>
+      <h3>Source Code</h3>
+      <p>
+        <a href="https://github.com/pnlybubbles/flux-server-side-rendering-sample">pnlybubbles/flux-server-side-rendering-sample</a>
+      </p>
     </div>
 
 module.exports = AboutComponent

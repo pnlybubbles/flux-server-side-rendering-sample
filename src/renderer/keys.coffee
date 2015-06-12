@@ -1,2 +1,4 @@
 module.exports =
-  route: "route"
+  route: 'route'
+  active: 'active'
+  countUp: 'countUp'
