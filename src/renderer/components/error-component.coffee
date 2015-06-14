@@ -9,4 +9,7 @@ class ErrorComponent extends React.Component
       <h1>404 NotFound</h1>
     </div>
 
+ErrorComponent.contextTypes =
+  ctx: React.PropTypes.any
+
 module.exports = ErrorComponent

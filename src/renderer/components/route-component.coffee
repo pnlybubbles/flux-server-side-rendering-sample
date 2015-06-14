@@ -3,10 +3,12 @@ React = require 'react'
 class RouteComponent extends React.Component
   constructor: (props) ->
     super props
-    @store = @props.context.routeStore
-    @state = @store.get()
 
   _onChange: ->
+    @setState @store.get()
+
+  componentWillMount: ->
+    @store = @context.ctx.routeStore
     @setState @store.get()
 
   componentDidMount: ->
@@ -22,5 +24,8 @@ class RouteComponent extends React.Component
           @props.children
       }
     </div>
+
+RouteComponent.contextTypes =
+  ctx: React.PropTypes.any
 
 module.exports = RouteComponent

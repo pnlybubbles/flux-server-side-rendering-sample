@@ -1,16 +1,19 @@
 React = require 'react'
 
-class Link extends React.Component
+class LinkComponent extends React.Component
   constructor: (props) ->
     super props
 
   navigate: (e) ->
     e.preventDefault()
-    @props.context.routeAction.navigate(@props.href)
+    @context.ctx.routeAction.navigate(@props.href)
 
   render: ->
     <a href={@props.href} onClick={ @navigate.bind(@) }>
       {@props.children}
     </a>
 
-module.exports = Link
+LinkComponent.contextTypes =
+  ctx: React.PropTypes.any
+
+module.exports = LinkComponent

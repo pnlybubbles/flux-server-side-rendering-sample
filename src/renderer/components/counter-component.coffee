@@ -5,7 +5,7 @@ class CounterComponent extends React.Component
     super props
 
   countUp: ->
-    @props.context.counterAction.countUp(@props.counter.index, @props.counter.count + 1)
+    @context.ctx.counterAction.countUp(@props.counter.index, @props.counter.count + 1)
 
   render: ->
     <div>
@@ -13,5 +13,8 @@ class CounterComponent extends React.Component
       <h1>{@props.counter.count}</h1>
       <button onClick={@countUp.bind(@)}>CountUp</button>
     </div>
+
+CounterComponent.contextTypes =
+  ctx: React.PropTypes.any
 
 module.exports = CounterComponent

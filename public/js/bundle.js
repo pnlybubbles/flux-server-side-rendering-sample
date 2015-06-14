@@ -24834,6 +24834,10 @@ AboutComponent = (function(superClass) {
 
 })(React.Component);
 
+AboutComponent.contextTypes = {
+  ctx: React.PropTypes.any
+};
+
 module.exports = AboutComponent;
 
 
@@ -24862,34 +24866,33 @@ AppComponent = (function(superClass) {
     AppComponent.__super__.constructor.call(this, props);
   }
 
+  AppComponent.prototype.getChildContext = function() {
+    return {
+      ctx: this.props.context
+    };
+  };
+
   AppComponent.prototype.render = function() {
     return React.createElement("div", null, React.createElement("nav", null, React.createElement("li", null, React.createElement(Link, {
-      "context": this.props.context,
       "href": '/'
     }, "Counter")), React.createElement("li", null, React.createElement(Link, {
-      "context": this.props.context,
       "href": '/about'
     }, "About"))), React.createElement(Route, {
-      "route": 'Index',
-      "context": this.props.context
-    }, React.createElement(IndexComponent, {
-      "context": this.props.context
-    })), React.createElement(Route, {
-      "route": 'About',
-      "context": this.props.context
-    }, React.createElement(AboutComponent, {
-      "context": this.props.context
-    })), React.createElement(Route, {
-      "route": 'Error',
-      "context": this.props.context
-    }, React.createElement(ErrorComponent, {
-      "context": this.props.context
-    })));
+      "route": 'Index'
+    }, React.createElement(IndexComponent, null)), React.createElement(Route, {
+      "route": 'About'
+    }, React.createElement(AboutComponent, null)), React.createElement(Route, {
+      "route": 'Error'
+    }, React.createElement(ErrorComponent, null)));
   };
 
   return AppComponent;
 
 })(React.Component);
+
+AppComponent.childContextTypes = {
+  ctx: React.PropTypes.any
+};
 
 module.exports = AppComponent;
 
@@ -24910,7 +24913,7 @@ CounterComponent = (function(superClass) {
   }
 
   CounterComponent.prototype.countUp = function() {
-    return this.props.context.counterAction.countUp(this.props.counter.index, this.props.counter.count + 1);
+    return this.context.ctx.counterAction.countUp(this.props.counter.index, this.props.counter.count + 1);
   };
 
   CounterComponent.prototype.render = function() {
@@ -24922,6 +24925,10 @@ CounterComponent = (function(superClass) {
   return CounterComponent;
 
 })(React.Component);
+
+CounterComponent.contextTypes = {
+  ctx: React.PropTypes.any
+};
 
 module.exports = CounterComponent;
 
@@ -24942,7 +24949,7 @@ CounterListItemComponent = (function(superClass) {
   }
 
   CounterListItemComponent.prototype.active = function() {
-    return this.props.context.counterAction.active(this.props.counter.index);
+    return this.context.ctx.counterAction.active(this.props.counter.index);
   };
 
   CounterListItemComponent.prototype.render = function() {
@@ -24956,6 +24963,10 @@ CounterListItemComponent = (function(superClass) {
   return CounterListItemComponent;
 
 })(React.Component);
+
+CounterListItemComponent.contextTypes = {
+  ctx: React.PropTypes.any
+};
 
 module.exports = CounterListItemComponent;
 
@@ -24983,6 +24994,10 @@ ErrorComponent = (function(superClass) {
 
 })(React.Component);
 
+ErrorComponent.contextTypes = {
+  ctx: React.PropTypes.any
+};
+
 module.exports = ErrorComponent;
 
 
@@ -25003,11 +25018,14 @@ IndexComponent = (function(superClass) {
 
   function IndexComponent(props) {
     IndexComponent.__super__.constructor.call(this, props);
-    this.store = this.props.context.counterStore;
-    this.state = this.store.get();
   }
 
   IndexComponent.prototype._onChange = function() {
+    return this.setState(this.store.get());
+  };
+
+  IndexComponent.prototype.componentWillMount = function() {
+    this.store = this.context.ctx.counterStore;
     return this.setState(this.store.get());
   };
 
@@ -25026,13 +25044,11 @@ IndexComponent = (function(superClass) {
           "key": counter.index
         }, React.createElement(CounterListItem, {
           "active": counter.index === _this.state.active,
-          "counter": counter,
-          "context": _this.props.context
+          "counter": counter
         }));
       };
     })(this))), React.createElement("div", null, React.createElement(Counter, {
-      "counter": this.state.counters[this.state.active],
-      "context": this.props.context
+      "counter": this.state.counters[this.state.active]
     })));
   };
 
@@ -25040,41 +25056,49 @@ IndexComponent = (function(superClass) {
 
 })(React.Component);
 
+IndexComponent.contextTypes = {
+  ctx: React.PropTypes.any
+};
+
 module.exports = IndexComponent;
 
 
 
 },{"./counter-component":184,"./counter-list-item-component":185,"react":179}],188:[function(require,module,exports){
-var Link, React,
+var LinkComponent, React,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 React = require('react');
 
-Link = (function(superClass) {
-  extend(Link, superClass);
+LinkComponent = (function(superClass) {
+  extend(LinkComponent, superClass);
 
-  function Link(props) {
-    Link.__super__.constructor.call(this, props);
+  function LinkComponent(props) {
+    LinkComponent.__super__.constructor.call(this, props);
   }
 
-  Link.prototype.navigate = function(e) {
+  LinkComponent.prototype.navigate = function(e) {
     e.preventDefault();
-    return this.props.context.routeAction.navigate(this.props.href);
+    return this.context.ctx.routeAction.navigate(this.props.href);
   };
 
-  Link.prototype.render = function() {
+  LinkComponent.prototype.render = function() {
     return React.createElement("a", {
       "href": this.props.href,
       "onClick": this.navigate.bind(this)
     }, this.props.children);
   };
 
-  return Link;
+  return LinkComponent;
 
 })(React.Component);
 
-module.exports = Link;
+LinkComponent.contextTypes = {
+  ctx: React.PropTypes.any
+};
+
+module.exports = LinkComponent;
 
 
 
@@ -25090,11 +25114,14 @@ RouteComponent = (function(superClass) {
 
   function RouteComponent(props) {
     RouteComponent.__super__.constructor.call(this, props);
-    this.store = this.props.context.routeStore;
-    this.state = this.store.get();
   }
 
   RouteComponent.prototype._onChange = function() {
+    return this.setState(this.store.get());
+  };
+
+  RouteComponent.prototype.componentWillMount = function() {
+    this.store = this.context.ctx.routeStore;
     return this.setState(this.store.get());
   };
 
@@ -25113,6 +25140,10 @@ RouteComponent = (function(superClass) {
   return RouteComponent;
 
 })(React.Component);
+
+RouteComponent.contextTypes = {
+  ctx: React.PropTypes.any
+};
 
 module.exports = RouteComponent;
 

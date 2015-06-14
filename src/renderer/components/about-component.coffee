@@ -25,4 +25,7 @@ class AboutComponent extends React.Component
       </p>
     </div>
 
+AboutComponent.contextTypes =
+  ctx: React.PropTypes.any
+
 module.exports = AboutComponent

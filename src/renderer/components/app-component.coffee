@@ -9,15 +9,21 @@ class AppComponent extends React.Component
   constructor: (props) ->
     super props
 
+  getChildContext: ->
+    ctx: @props.context
+
   render: ->
     <div>
       <nav>
-        <li><Link context={@props.context} href='/'>Counter</Link></li>
-        <li><Link context={@props.context} href='/about'>About</Link></li>
+        <li><Link href='/'>Counter</Link></li>
+        <li><Link href='/about'>About</Link></li>
       </nav>
-      <Route route='Index' context={@props.context}><IndexComponent context={@props.context}/></Route>
-      <Route route='About' context={@props.context}><AboutComponent context={@props.context}/></Route>
-      <Route route='Error' context={@props.context}><ErrorComponent context={@props.context}/></Route>
+      <Route route='Index'><IndexComponent /></Route>
+      <Route route='About'><AboutComponent /></Route>
+      <Route route='Error'><ErrorComponent /></Route>
     </div>
+
+AppComponent.childContextTypes =
+  ctx: React.PropTypes.any
 
 module.exports = AppComponent

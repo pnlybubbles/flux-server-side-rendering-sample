@@ -5,10 +5,12 @@ Counter = require './counter-component'
 class IndexComponent extends React.Component
   constructor: (props) ->
     super props
-    @store = @props.context.counterStore
-    @state = @store.get()
 
   _onChange: ->
+    @setState @store.get()
+
+  componentWillMount: ->
+    @store = @context.ctx.counterStore
     @setState @store.get()
 
   componentDidMount: ->
@@ -25,13 +27,16 @@ class IndexComponent extends React.Component
         {
           @state.counters.map (counter) =>
             <li key={counter.index}>
-              <CounterListItem active={counter.index == @state.active} counter={counter} context={@props.context} />
+              <CounterListItem active={counter.index == @state.active} counter={counter} />
             </li>
         }
       </div>
       <div>
-        <Counter counter={@state.counters[@state.active]} context={@props.context} />
+        <Counter counter={@state.counters[@state.active]} />
       </div>
     </div>
+
+IndexComponent.contextTypes =
+  ctx: React.PropTypes.any
 
 module.exports = IndexComponent
