@@ -30,7 +30,9 @@
     "vinyl-buffer": "^1.0.0"
   },
   "scripts": {
-    "start": "foreman start"
+    "start": "foreman start",
+    "build": "gulp --require coffee-script build",
+    "watch": "gulp --require coffee-script watch"
   },
   "author": "pnlybubbles",
   "license": "MIT"
