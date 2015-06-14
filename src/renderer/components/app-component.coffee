@@ -15,12 +15,16 @@ class AppComponent extends React.Component
   render: ->
     <div>
       <nav>
-        <li><Link href='/'>Counter</Link></li>
-        <li><Link href='/about'>About</Link></li>
+        <Route addClassName='active'>
+          <li route='Index'><Link href='/'>Counter</Link></li>
+          <li route='About'><Link href='/about'>About</Link></li>
+        </Route>
       </nav>
-      <Route route='Index'><IndexComponent /></Route>
-      <Route route='About'><AboutComponent /></Route>
-      <Route route='Error'><ErrorComponent /></Route>
+      <Route>
+        <IndexComponent route='Index' />
+        <AboutComponent route='About' />
+        <ErrorComponent route='Error' />
+      </Route>
     </div>
 
 AppComponent.childContextTypes =

@@ -20,8 +20,21 @@ class RouteComponent extends React.Component
   render: ->
     <div>
       {
-        if @state.route == @props.route
-          @props.children
+        React.Children.map @props.children, (child) =>
+          if child.props.route == @state.route
+            if @props.addClassName?
+              React.cloneElement child,
+                argu: @state.argu
+                className: @props.addClassName
+            else
+              React.cloneElement child,
+                argu: @state.argu
+          else
+            if @props.addClassName?
+              React.cloneElement child,
+                argu: @state.argu
+            else
+              null
       }
     </div>
 

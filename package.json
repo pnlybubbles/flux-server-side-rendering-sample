@@ -8,6 +8,7 @@
     "handlebars": "^3.0.3",
     "history.js": "^1.8.0",
     "html5-history": "pnlybubbles/html5-history#d9d9d7a49f076abfed9f1d9bc459c2db2ff0c4b4",
+    "lodash": "^3.9.3",
     "material-flux": "^1.2.1",
     "object-assign": "^3.0.0",
     "react": "^0.13.3",

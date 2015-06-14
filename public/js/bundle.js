@@ -24873,17 +24873,23 @@ AppComponent = (function(superClass) {
   };
 
   AppComponent.prototype.render = function() {
-    return React.createElement("div", null, React.createElement("nav", null, React.createElement("li", null, React.createElement(Link, {
-      "href": '/'
-    }, "Counter")), React.createElement("li", null, React.createElement(Link, {
-      "href": '/about'
-    }, "About"))), React.createElement(Route, {
+    return React.createElement("div", null, React.createElement("nav", null, React.createElement(Route, {
+      "addClassName": 'active'
+    }, React.createElement("li", {
       "route": 'Index'
-    }, React.createElement(IndexComponent, null)), React.createElement(Route, {
+    }, React.createElement(Link, {
+      "href": '/'
+    }, "Counter")), React.createElement("li", {
       "route": 'About'
-    }, React.createElement(AboutComponent, null)), React.createElement(Route, {
+    }, React.createElement(Link, {
+      "href": '/about'
+    }, "About")))), React.createElement(Route, null, React.createElement(IndexComponent, {
+      "route": 'Index'
+    }), React.createElement(AboutComponent, {
+      "route": 'About'
+    }), React.createElement(ErrorComponent, {
       "route": 'Error'
-    }, React.createElement(ErrorComponent, null)));
+    })));
   };
 
   return AppComponent;
@@ -25134,7 +25140,30 @@ RouteComponent = (function(superClass) {
   };
 
   RouteComponent.prototype.render = function() {
-    return React.createElement("div", null, (this.state.route === this.props.route ? this.props.children : void 0));
+    return React.createElement("div", null, React.Children.map(this.props.children, (function(_this) {
+      return function(child) {
+        if (child.props.route === _this.state.route) {
+          if (_this.props.addClassName != null) {
+            return React.cloneElement(child, {
+              argu: _this.state.argu,
+              className: _this.props.addClassName
+            });
+          } else {
+            return React.cloneElement(child, {
+              argu: _this.state.argu
+            });
+          }
+        } else {
+          if (_this.props.addClassName != null) {
+            return React.cloneElement(child, {
+              argu: _this.state.argu
+            });
+          } else {
+            return null;
+          }
+        }
+      };
+    })(this)));
   };
 
   return RouteComponent;
