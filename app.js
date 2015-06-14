@@ -1,6 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (process){
-var App, AppContext, Handlebars, React, RouterUtil, express, fs, routerUtil, routes, server, template;
+var App, AppContext, Handlebars, React, RouterUtil, counter, express, fs, routerUtil, routes, server, template;
 
 require('source-map-support').install();
 
@@ -30,6 +30,37 @@ routerUtil = new RouterUtil(routes.root, routes.routes);
 
 console.log(routerUtil);
 
+counter = {
+  counters: [
+    {
+      name: 'counter1',
+      count: 0,
+      index: 0
+    }, {
+      name: 'counter2',
+      count: 0,
+      index: 1
+    }, {
+      name: 'counter3',
+      count: 0,
+      index: 2
+    }
+  ],
+  active: 0
+};
+
+server.post('/api/counter/:index/count_up', function(req, res) {
+  var index, ref, ref1;
+  index = parseInt(req.params.index, 10);
+  if ((ref = counter.counters[index]) != null) {
+    ref.count += 1;
+  }
+  res.contentType('application/json');
+  return res.send(JSON.stringify({
+    count: (ref1 = counter.counters[index]) != null ? ref1.count : void 0
+  }));
+});
+
 server.get('*', function(req, res) {
   var argu, context, initialStates, ref, route;
   console.log(req.originalUrl);
@@ -38,7 +69,8 @@ server.get('*', function(req, res) {
     RouteStore: {
       route: route,
       argu: argu
-    }
+    },
+    CounterStore: counter
   };
   context = new AppContext(initialStates);
   return res.send(template({
@@ -148,13 +180,17 @@ process.chdir = function (dir) {
 process.umask = function() { return 0; };
 
 },{}],3:[function(require,module,exports){
-var CounterAction, Flux, keys,
+var CounterAction, Flux, Promise, keys, request,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 Flux = require('material-flux');
 
 keys = require('../keys');
+
+request = require('superagent');
+
+Promise = require('bluebird');
 
 CounterAction = (function(superClass) {
   extend(CounterAction, superClass);
@@ -168,7 +204,24 @@ CounterAction = (function(superClass) {
   };
 
   CounterAction.prototype.countUp = function(index, count) {
-    return this.dispatch(keys.countUp, index, count);
+    this.dispatch(keys.countUp, index, count);
+    return new Promise(function(resolve, reject) {
+      return request.post("/api/counter/" + index + "/count_up").send({
+        count: count
+      }).end(function(err, res) {
+        if (res.ok) {
+          return resolve(res.body);
+        } else {
+          return reject(err);
+        }
+      });
+    }).then((function(_this) {
+      return function(res) {
+        return _this.dispatch(keys.countUp, index, res.count);
+      };
+    })(this))["catch"](function(err) {
+      return console.error(err);
+    });
   };
 
   return CounterAction;
@@ -179,7 +232,7 @@ module.exports = CounterAction;
 
 
 
-},{"../keys":14,"material-flux":undefined}],4:[function(require,module,exports){
+},{"../keys":14,"bluebird":undefined,"material-flux":undefined,"superagent":undefined}],4:[function(require,module,exports){
 var Flux, History, RouteAction, keys,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;

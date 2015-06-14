@@ -4,6 +4,7 @@
   "description": "sample of flux with server side rendering",
   "main": "app.js",
   "dependencies": {
+    "bluebird": "^2.9.30",
     "express": "^4.12.4",
     "handlebars": "^3.0.3",
     "history.js": "^1.8.0",
@@ -12,7 +13,8 @@
     "material-flux": "^1.2.1",
     "object-assign": "^3.0.0",
     "react": "^0.13.3",
-    "source-map-support": "^0.3.1"
+    "source-map-support": "^0.3.1",
+    "superagent": "^1.2.0"
   },
   "devDependencies": {
     "coffee-reactify": "^3.0.0",
