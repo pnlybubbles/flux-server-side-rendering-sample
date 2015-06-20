@@ -1,25 +1,25 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var App, AppContext, React, context, initialStates;
+var Context, React, Root, context, initialStates;
 
 React = require('react');
 
-AppContext = require('./renderer/context');
+Context = require('./renderer/context');
 
-App = require('./renderer/components/app-component');
+Root = require('./renderer/components/root-component');
 
 initialStates = JSON.parse(document.getElementById('initial-states').getAttribute('states-json'));
 
 console.log(initialStates);
 
-context = new AppContext(initialStates);
+context = new Context(initialStates);
 
-React.render(React.createElement(App, {
+React.render(React.createElement(Root, {
   context: context
 }), document.getElementById("app"));
 
 
 
-},{"./renderer/components/app-component":187,"./renderer/context":194,"react":180}],2:[function(require,module,exports){
+},{"./renderer/components/root-component":195,"./renderer/context":197,"react":180}],2:[function(require,module,exports){
 (function (process,global){
 /* @preserve
  * The MIT License (MIT)
@@ -7103,7 +7103,7 @@ History.initHtml4 = function(){
          * @param {string} url
          * @return {true}
          */
-        History.pushState = function(data,title,url,queue){
+        History.pushState = function(data,title,url,queue,silent){
             //History.debug('History.pushState: called', arguments);
 
             // We assume that the URL passed in is URI-encoded, but this makes
@@ -7162,7 +7162,9 @@ History.initHtml4 = function(){
 
             // Fire HTML5 Event
             if(!wasExpected)
-                History.Adapter.trigger(window,'statechange');
+                if (silent !== true) {
+                    History.Adapter.trigger(window,'statechange');
+                }
 
             // Update HTML4 Hash
             if ( !History.isHashEqual(newStateHash, html4Hash) && !History.isHashEqual(newStateHash, History.getShortUrl(History.getLocationHref())) ) {
@@ -7184,7 +7186,7 @@ History.initHtml4 = function(){
          * @param {string} url
          * @return {true}
          */
-        History.replaceState = function(data,title,url,queue){
+        History.replaceState = function(data,title,url,queue,silent){
             //History.debug('History.replaceState: called', arguments);
 
             // We assume that the URL passed in is URI-encoded, but this makes
@@ -7242,7 +7244,9 @@ History.initHtml4 = function(){
 
                 // Fire HTML5 Event
                 //History.debug('History.pushState: trigger popstate');
-                History.Adapter.trigger(window,'statechange');
+                if (silent !== true) {
+                    History.Adapter.trigger(window,'statechange');
+                }
                 History.busy(false);
             }
             else {
@@ -9062,7 +9066,7 @@ History.initCore = function(options){
          * @param {string} url
          * @return {true}
          */
-        History.pushState = function(data,title,url,queue){
+        History.pushState = function(data,title,url,queue,silent){
             //History.debug('History.pushState: called', arguments);
 
             // Check the State
@@ -9103,7 +9107,11 @@ History.initCore = function(options){
                 history.pushState(newState.id,newState.title,newState.url);
 
                 // Fire HTML5 Event
-                History.Adapter.trigger(window,'popstate');
+                if (silent !== true) {
+                    History.Adapter.trigger(window,'popstate');
+                } else {
+                    History.busy(false);
+                }
             }
 
             // End pushState closure
@@ -9119,7 +9127,7 @@ History.initCore = function(options){
          * @param {string} url
          * @return {true}
          */
-        History.replaceState = function(data,title,url,queue){
+        History.replaceState = function(data,title,url,queue,silent){
             //History.debug('History.replaceState: called', arguments);
 
             // Check the State
@@ -9160,7 +9168,11 @@ History.initCore = function(options){
                 history.replaceState(newState.id,newState.title,newState.url);
 
                 // Fire HTML5 Event
-                History.Adapter.trigger(window,'popstate');
+                if (silent !== true) {
+                    History.Adapter.trigger(window,'popstate');
+                } else {
+                    History.busy(false);
+                }
             }
 
             // End replaceState closure
@@ -31221,7 +31233,7 @@ module.exports = CounterAction;
 
 
 
-},{"../keys":195,"bluebird":2,"material-flux":17,"superagent":181}],185:[function(require,module,exports){
+},{"../keys":198,"bluebird":2,"material-flux":17,"superagent":181}],185:[function(require,module,exports){
 var Flux, History, RouteAction, keys,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -31229,6 +31241,8 @@ var Flux, History, RouteAction, keys,
 Flux = require('material-flux');
 
 keys = require('../keys');
+
+History = null;
 
 if (typeof window !== "undefined" && window !== null) {
   History = require('html5-history');
@@ -31244,29 +31258,34 @@ RouteAction = (function(superClass) {
         return function() {
           var state;
           state = History.getState();
+          console.log('statechange', state.hash);
           return _this.dispatch(keys.route, state.hash);
         };
       })(this));
-    } else if (typeof history !== "undefined" && history !== null) {
-      if (typeof window !== "undefined" && window !== null) {
-        console.warn('html5-history is not available. Now using default History API.');
-      }
     } else {
       if (typeof window !== "undefined" && window !== null) {
-        console.warn('Both html5-history and default History API are not available.');
+        console.warn('html5-history is not available.');
       }
     }
   }
 
-  RouteAction.prototype.navigate = function(path) {
+  RouteAction.prototype.navigate = function(path, options) {
+    path = "/" + (this.clearSlashes(path));
     if ((History != null ? History.Adapter : void 0) != null) {
-      return History.pushState(null, null, path);
-    } else if (typeof history !== "undefined" && history !== null) {
-      history.pushState(null, null, path);
-      return this.dispatch(keys.route, path);
+      console.log(History.getState().hash);
+      console.log('navigate', path, options);
+      if ((options != null ? options.replace : void 0) === true) {
+        return History.replaceState(null, null, path, void 0, options != null ? options.silent : void 0);
+      } else {
+        return History.pushState(null, null, path, void 0, options != null ? options.silent : void 0);
+      }
     } else if (typeof location !== "undefined" && location !== null) {
       return location.href = path;
     }
+  };
+
+  RouteAction.prototype.clearSlashes = function(path) {
+    return path.toString().replace(/\/$/, '').replace(/^\//, '');
   };
 
   return RouteAction;
@@ -31277,7 +31296,61 @@ module.exports = RouteAction;
 
 
 
-},{"../keys":195,"html5-history":13,"material-flux":17}],186:[function(require,module,exports){
+},{"../keys":198,"html5-history":13,"material-flux":17}],186:[function(require,module,exports){
+var Flux, Promise, UserAction, keys, request,
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
+
+Flux = require('material-flux');
+
+keys = require('../keys');
+
+request = require('superagent');
+
+Promise = require('bluebird');
+
+UserAction = (function(superClass) {
+  extend(UserAction, superClass);
+
+  function UserAction() {
+    return UserAction.__super__.constructor.apply(this, arguments);
+  }
+
+  UserAction.prototype.login = function(email, password) {
+    return new Promise(function(resolve, reject) {
+      return request.post('/api/login').send({
+        email: email,
+        password: password
+      }).end(function(err, res) {
+        if (res.ok) {
+          return resolve(res.body);
+        } else {
+          return reject(err);
+        }
+      });
+    }).then((function(_this) {
+      return function(res) {
+        console.log(res);
+        return _this.dispatch(keys.user, res);
+      };
+    })(this))["catch"](function(err) {
+      return console.error(err);
+    });
+  };
+
+  UserAction.prototype.logout = function() {
+    return console.log('logout');
+  };
+
+  return UserAction;
+
+})(Flux.Action);
+
+module.exports = UserAction;
+
+
+
+},{"../keys":198,"bluebird":2,"material-flux":17,"superagent":181}],187:[function(require,module,exports){
 var AboutComponent, Link, React,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -31311,8 +31384,8 @@ module.exports = AboutComponent;
 
 
 
-},{"./link-component":192,"react":180}],187:[function(require,module,exports){
-var AboutComponent, AppComponent, ErrorComponent, IndexComponent, Link, React, Route,
+},{"./link-component":193,"react":180}],188:[function(require,module,exports){
+var AboutComponent, AppComponent, ErrorComponent, IndexComponent, Link, LoginComponent, React, Route,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
@@ -31326,6 +31399,8 @@ IndexComponent = require('./index-component');
 
 AboutComponent = require('./about-component');
 
+LoginComponent = require('./login-component');
+
 ErrorComponent = require('./error-component');
 
 AppComponent = (function(superClass) {
@@ -31335,15 +31410,27 @@ AppComponent = (function(superClass) {
     AppComponent.__super__.constructor.call(this, props);
   }
 
-  AppComponent.prototype.getChildContext = function() {
-    return {
-      ctx: this.props.context
-    };
+  AppComponent.prototype._onChange = function() {
+    return this.setState(this.store.get());
+  };
+
+  AppComponent.prototype.componentWillMount = function() {
+    this.store = this.context.ctx.userStore;
+    return this.setState(this.store.get());
+  };
+
+  AppComponent.prototype.componentDidMount = function() {
+    return this.store.onChange(this._onChange.bind(this));
+  };
+
+  AppComponent.prototype.componentWillUnmount = function() {
+    return this.store.removeAllChangeListeners();
   };
 
   AppComponent.prototype.render = function() {
-    return React.createElement("div", null, React.createElement("nav", null, React.createElement(Route, {
-      "addClassName": 'active'
+    return React.createElement("div", null, React.createElement(Route, {
+      "addClassName": 'active',
+      "logined": this.state.logined
     }, React.createElement("li", {
       "route": 'Index'
     }, React.createElement(Link, {
@@ -31352,12 +31439,20 @@ AppComponent = (function(superClass) {
       "route": 'About'
     }, React.createElement(Link, {
       "href": '/about'
-    }, "About")))), React.createElement(Route, null, React.createElement(IndexComponent, {
+    }, "About")), React.createElement("li", {
+      "route": 'Login'
+    }, React.createElement(Link, {
+      "href": '/login'
+    }, "Login"))), React.createElement(Route, {
+      "logined": this.state.logined
+    }, React.createElement(IndexComponent, {
       "route": 'Index'
     }), React.createElement(AboutComponent, {
       "route": 'About'
     }), React.createElement(ErrorComponent, {
       "route": 'Error'
+    }), React.createElement(LoginComponent, {
+      "route": 'Login'
     })));
   };
 
@@ -31365,7 +31460,7 @@ AppComponent = (function(superClass) {
 
 })(React.Component);
 
-AppComponent.childContextTypes = {
+AppComponent.contextTypes = {
   ctx: React.PropTypes.any
 };
 
@@ -31373,7 +31468,7 @@ module.exports = AppComponent;
 
 
 
-},{"./about-component":186,"./error-component":190,"./index-component":191,"./link-component":192,"./route-component":193,"react":180}],188:[function(require,module,exports){
+},{"./about-component":187,"./error-component":191,"./index-component":192,"./link-component":193,"./login-component":194,"./route-component":196,"react":180}],189:[function(require,module,exports){
 var CounterComponent, React,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -31409,7 +31504,7 @@ module.exports = CounterComponent;
 
 
 
-},{"react":180}],189:[function(require,module,exports){
+},{"react":180}],190:[function(require,module,exports){
 var CounterListItemComponent, React,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -31447,7 +31542,7 @@ module.exports = CounterListItemComponent;
 
 
 
-},{"react":180}],190:[function(require,module,exports){
+},{"react":180}],191:[function(require,module,exports){
 var ErrorComponent, React,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -31477,7 +31572,7 @@ module.exports = ErrorComponent;
 
 
 
-},{"react":180}],191:[function(require,module,exports){
+},{"react":180}],192:[function(require,module,exports){
 var Counter, CounterListItem, IndexComponent, React,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -31539,7 +31634,7 @@ module.exports = IndexComponent;
 
 
 
-},{"./counter-component":188,"./counter-list-item-component":189,"react":180}],192:[function(require,module,exports){
+},{"./counter-component":189,"./counter-list-item-component":190,"react":180}],193:[function(require,module,exports){
 var LinkComponent, React,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -31577,12 +31672,114 @@ module.exports = LinkComponent;
 
 
 
-},{"react":180}],193:[function(require,module,exports){
-var React, RouteComponent,
+},{"react":180}],194:[function(require,module,exports){
+var LoginComponent, React,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 React = require('react');
+
+LoginComponent = (function(superClass) {
+  extend(LoginComponent, superClass);
+
+  function LoginComponent(props) {
+    LoginComponent.__super__.constructor.call(this, props);
+    this.state = {
+      email: '',
+      password: ''
+    };
+  }
+
+  LoginComponent.prototype.changeEmailInput = function(e) {
+    return this.setState({
+      email: e.target.value
+    });
+  };
+
+  LoginComponent.prototype.changePasswordInput = function(e) {
+    return this.setState({
+      password: e.target.value
+    });
+  };
+
+  LoginComponent.prototype.login = function() {
+    return this.context.ctx.userAction.login(this.state.email, this.state.password);
+  };
+
+  LoginComponent.prototype.render = function() {
+    return React.createElement("div", null, React.createElement("h1", null, "Login"), React.createElement("span", null, "email"), React.createElement("input", {
+      "name": 'email',
+      "type": 'text',
+      "value": this.state.email,
+      "onChange": this.changeEmailInput.bind(this)
+    }), React.createElement("span", null, "password"), React.createElement("input", {
+      "name": 'password',
+      "type": 'password',
+      "value": this.state.password,
+      "onChange": this.changePasswordInput.bind(this)
+    }), React.createElement("button", {
+      "onClick": this.login.bind(this)
+    }, "Login"));
+  };
+
+  return LoginComponent;
+
+})(React.Component);
+
+LoginComponent.contextTypes = {
+  ctx: React.PropTypes.any
+};
+
+module.exports = LoginComponent;
+
+
+
+},{"react":180}],195:[function(require,module,exports){
+var App, React, RootComponent,
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
+
+React = require('react');
+
+App = require('./app-component');
+
+RootComponent = (function(superClass) {
+  extend(RootComponent, superClass);
+
+  function RootComponent(props) {
+    RootComponent.__super__.constructor.call(this, props);
+  }
+
+  RootComponent.prototype.getChildContext = function() {
+    return {
+      ctx: this.props.context
+    };
+  };
+
+  RootComponent.prototype.render = function() {
+    return React.createElement(App, null);
+  };
+
+  return RootComponent;
+
+})(React.Component);
+
+RootComponent.childContextTypes = {
+  ctx: React.PropTypes.any
+};
+
+module.exports = RootComponent;
+
+
+
+},{"./app-component":188,"react":180}],196:[function(require,module,exports){
+var React, RouteComponent, Router,
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
+
+React = require('react');
+
+Router = require('../lib/router');
 
 RouteComponent = (function(superClass) {
   extend(RouteComponent, superClass);
@@ -31592,12 +31789,17 @@ RouteComponent = (function(superClass) {
   }
 
   RouteComponent.prototype._onChange = function() {
-    return this.setState(this.store.get());
+    this.setState(this.store.get());
+    return console.log('onChange', this.store.get());
   };
 
   RouteComponent.prototype.componentWillMount = function() {
+    var state;
     this.store = this.context.ctx.routeStore;
-    return this.setState(this.store.get());
+    state = this.store.get();
+    this.setState(state);
+    this.router = new Router(state.routes.root, state.routes.routes);
+    return this.router.setAuth(state.routes.auth);
   };
 
   RouteComponent.prototype.componentDidMount = function() {
@@ -31609,28 +31811,41 @@ RouteComponent = (function(superClass) {
   };
 
   RouteComponent.prototype.render = function() {
-    return React.createElement("div", null, React.Children.map(this.props.children, (function(_this) {
-      return function(child) {
-        if (child.props.route === _this.state.route) {
-          if (_this.props.addClassName != null) {
-            return React.cloneElement(child, {
-              argu: _this.state.argu,
-              className: _this.props.addClassName
-            });
-          } else {
-            return React.cloneElement(child, {
-              argu: _this.state.argu
-            });
-          }
-        } else {
-          if (_this.props.addClassName != null) {
-            return React.cloneElement(child, {
-              argu: _this.state.argu
-            });
-          } else {
-            return null;
-          }
+    return React.createElement("div", null, this.router.route(this.state.fragment, this.props.logined, (function(_this) {
+      return function(route, argu, default_route, fragment, default_fragment) {
+        console.log(route, argu, default_route, fragment, default_fragment);
+        if ((default_route != null) && (default_fragment != null)) {
+          _this.context.ctx.routeAction.navigate(fragment, {
+            replace: true,
+            silent: true
+          });
         }
+        return React.Children.map(_this.props.children, function(child) {
+          if (child.props.route === route) {
+            if (_this.props.addClassName != null) {
+              return React.cloneElement(child, {
+                argu: argu,
+                className: _this.props.addClassName
+              });
+            } else {
+              return React.cloneElement(child, {
+                argu: argu
+              });
+            }
+          } else {
+            if (_this.props.addClassName != null) {
+              return React.cloneElement(child, {
+                argu: argu
+              });
+            } else {
+              return null;
+            }
+          }
+        });
+      };
+    })(this), (function(_this) {
+      return function(route, argu, default_route) {
+        return React.createElement("h1", null, "404 NotFound");
       };
     })(this)));
   };
@@ -31647,8 +31862,8 @@ module.exports = RouteComponent;
 
 
 
-},{"react":180}],194:[function(require,module,exports){
-var Context, CounterAction, CounterStore, Flux, RouteAction, RouteStore,
+},{"../lib/router":199,"react":180}],197:[function(require,module,exports){
+var Context, CounterAction, CounterStore, Flux, RouteAction, RouteStore, UserAction, UserStore,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
@@ -31662,6 +31877,10 @@ CounterAction = require('./actions/counter-action');
 
 CounterStore = require('./stores/counter-store');
 
+UserAction = require('./actions/user-action');
+
+UserStore = require('./stores/user-store');
+
 Context = (function(superClass) {
   extend(Context, superClass);
 
@@ -31672,6 +31891,8 @@ Context = (function(superClass) {
     this.routeStore = new RouteStore(this);
     this.counterAction = new CounterAction(this);
     this.counterStore = new CounterStore(this);
+    this.userAction = new UserAction(this);
+    this.userStore = new UserStore(this);
   }
 
   return Context;
@@ -31682,7 +31903,7 @@ module.exports = Context;
 
 
 
-},{"./actions/counter-action":184,"./actions/route-action":185,"./stores/counter-store":198,"./stores/route-store":199,"material-flux":17}],195:[function(require,module,exports){
+},{"./actions/counter-action":184,"./actions/route-action":185,"./actions/user-action":186,"./stores/counter-store":200,"./stores/route-store":201,"./stores/user-store":202,"material-flux":17}],198:[function(require,module,exports){
 module.exports = {
   route: 'route',
   active: 'active',
@@ -31691,56 +31912,102 @@ module.exports = {
 
 
 
-},{}],196:[function(require,module,exports){
-var RouterUtil;
+},{}],199:[function(require,module,exports){
+var Router, objectAssign;
 
-RouterUtil = (function() {
-  function RouterUtil(root, routes) {
-    this.root = (root != null) && root !== '/' ? '/' + this.clearSlashes(root) + '/' : '/';
-    this.routes = routes;
+objectAssign = require('object-assign');
+
+Router = (function() {
+  function Router(root, routes) {
+    this.setRoot(root);
+    if (routes != null) {
+      this.routes = routes;
+    }
+    this.auth = {};
   }
 
-  RouterUtil.prototype.route = function(fragment) {
-    var match, r, re, ref;
+  Router.prototype.setRoot = function(root) {
+    return this.root = (root != null) && root !== '/' ? '/' + this.clearSlashes(root) + '/' : '/';
+  };
+
+  Router.prototype.setRoute = function(path, route) {
+    var routes;
+    if (route == null) {
+      routes = path;
+    } else {
+      routes = {};
+      routes[path] = route;
+    }
+    return this.routes = objectAssign(this.routes, routes);
+  };
+
+  Router.prototype.setAuth = function(route, required, renavigate) {
+    var auth;
+    if (!((required != null) && (renavigate != null))) {
+      auth = route;
+    } else {
+      auth = {};
+      auth[route] = {
+        required: required,
+        renavigate: renavigate
+      };
+    }
+    return this.auth = objectAssign(this.auth, auth);
+  };
+
+  Router.prototype.route = function(fragment, logined, resolve, reject) {
+    var auth, match, match_, r, r_, re, re_, ref, ref1, res;
+    if (typeof logined === 'function' && (reject == null)) {
+      reject = resolve;
+      resolve = logined;
+      logined = void 0;
+    }
     fragment = fragment.replace(/\?(.*)$/, '');
     fragment = this.clearSlashes(fragment.replace(new RegExp("^" + this.root), ''));
+    res = [];
     ref = this.routes;
     for (re in ref) {
       r = ref[re];
       match = fragment.match(new RegExp("^" + re + "$"));
       if (match != null) {
         match.shift();
-        return [r, match];
+        if (logined != null) {
+          auth = this.auth[r];
+          if (((auth != null ? auth.required : void 0) === true && !logined) || ((auth != null ? auth.required : void 0) === false && logined)) {
+            if (auth.renavigate != null) {
+              ref1 = this.routes;
+              for (re_ in ref1) {
+                r_ = ref1[re_];
+                match_ = auth.renavigate.match(new RegExp("^" + re_ + "$"));
+                if (match_ != null) {
+                  return typeof resolve === "function" ? resolve(r_, match_, r, auth.renavigate, fragment) : void 0;
+                }
+              }
+              console.warn('\'renavigate\' fragment is not found in routes.');
+            } else {
+              console.warn('\'renavigate\' is not specified in authenticated route.');
+            }
+          }
+        }
+        return typeof resolve === "function" ? resolve(r, match, null, fragment, null) : void 0;
       }
     }
-    return [null, []];
+    return typeof reject === "function" ? reject(null, [], null, fragment, null) : void 0;
   };
 
-  RouterUtil.prototype.clearSlashes = function(path) {
+  Router.prototype.clearSlashes = function(path) {
     return path.toString().replace(/\/$/, '').replace(/^\//, '');
   };
 
-  return RouterUtil;
+  return Router;
 
 })();
 
-module.exports = RouterUtil;
+module.exports = Router;
 
 
 
-},{}],197:[function(require,module,exports){
-module.exports = {
-  root: '/',
-  routes: {
-    '': 'Index',
-    'about': 'About',
-    '.*': 'Error'
-  }
-};
-
-
-
-},{}],198:[function(require,module,exports){
+},{"object-assign":25}],200:[function(require,module,exports){
 var CounterStore, Flux, keys, objectAssign,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
@@ -31830,18 +32097,14 @@ module.exports = CounterStore;
 
 
 
-},{"../keys.coffee":195,"material-flux":17,"object-assign":25}],199:[function(require,module,exports){
-var Flux, RouteStore, RouterUtil, keys, objectAssign, routes,
+},{"../keys.coffee":198,"material-flux":17,"object-assign":25}],201:[function(require,module,exports){
+var Flux, RouteStore, keys, objectAssign,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 Flux = require('material-flux');
 
 keys = require('../keys');
-
-routes = require('../routes');
-
-RouterUtil = require('../lib/router-util');
 
 objectAssign = require('object-assign');
 
@@ -31851,24 +32114,21 @@ RouteStore = (function(superClass) {
   function RouteStore(context) {
     RouteStore.__super__.constructor.call(this, context);
     this.state = {
-      route: '/',
-      argu: []
+      fragment: '/',
+      routes: null
     };
     this.state = objectAssign(this.state, context.initialStates.RouteStore);
     this.register(keys.route, this.route);
-    this.routerUtil = new RouterUtil(routes.root, routes.routes);
+    if (this.state.routes == null) {
+      throw new Error('state.routes must be specifyed by initialState.');
+    }
   }
 
   RouteStore.prototype.route = function(fragment) {
-    var argu, ref, route;
-    console.log("route:", fragment);
-    ref = this.routerUtil.route(fragment), route = ref[0], argu = ref[1];
-    if (route != null) {
-      return this.setState({
-        route: route,
-        argu: argu
-      });
-    }
+    console.log('route:', fragment);
+    return this.setState({
+      fragment: fragment
+    });
   };
 
   RouteStore.prototype.get = function() {
@@ -31883,7 +32143,48 @@ module.exports = RouteStore;
 
 
 
-},{"../keys":195,"../lib/router-util":196,"../routes":197,"material-flux":17,"object-assign":25}]},{},[1])
+},{"../keys":198,"material-flux":17,"object-assign":25}],202:[function(require,module,exports){
+var Flux, UserStore, keys, objectAssign,
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
+
+Flux = require('material-flux');
+
+keys = require('../keys');
+
+objectAssign = require('object-assign');
+
+UserStore = (function(superClass) {
+  extend(UserStore, superClass);
+
+  function UserStore(context) {
+    UserStore.__super__.constructor.call(this, context);
+    this.state = {
+      error: null,
+      user: null,
+      logined: false
+    };
+    this.state = objectAssign(this.state, context.initialStates.UserStore);
+    this.register(keys.user, this.user);
+  }
+
+  UserStore.prototype.user = function(res) {
+    return this.setState(res);
+  };
+
+  UserStore.prototype.get = function() {
+    return this.state;
+  };
+
+  return UserStore;
+
+})(Flux.Store);
+
+module.exports = UserStore;
+
+
+
+},{"../keys":198,"material-flux":17,"object-assign":25}]},{},[1])
 
 
 //# sourceMappingURL=bundle.js.map

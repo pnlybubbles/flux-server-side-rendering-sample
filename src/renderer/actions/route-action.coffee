@@ -1,5 +1,6 @@
 Flux = require 'material-flux'
 keys = require '../keys'
+History = null
 History = require 'html5-history' if window?
 
 class RouteAction extends Flux.Action
@@ -8,23 +9,24 @@ class RouteAction extends Flux.Action
     if History?.Adapter?
       History.Adapter.bind window, 'statechange' , =>
         state = History.getState()
+        console.log 'statechange', state.hash
         @dispatch(keys.route, state.hash)
-    else if history?
-      console.warn 'html5-history is not available. Now using default History API.' if window?
-      # window.addEventListener 'popstate', (e) =>
-      #   state = e.state
-      #   @dispatch(keys.route, state.hash)
     else
-      console.warn 'Both html5-history and default History API are not available.' if window?
+      console.warn 'html5-history is not available.' if window?
 
-
-  navigate: (path) ->
+  navigate: (path, options) ->
+    path = "/#{@clearSlashes path}"
     if History?.Adapter?
-      History.pushState null, null, path
-    else if history?
-      history.pushState null, null, path
-      @dispatch(keys.route, path)
+      console.log History.getState().hash
+      console.log 'navigate', path, options
+      if options?.replace == true
+        History.replaceState null, null, path, undefined, options?.silent
+      else
+        History.pushState null, null, path, undefined, options?.silent
     else if location?
       location.href = path
+
+  clearSlashes: (path) ->
+    path.toString().replace(/\/$/, '').replace(/^\//, '')
 
 module.exports = RouteAction
